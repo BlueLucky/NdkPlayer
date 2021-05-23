@@ -38,7 +38,7 @@ void CPlayer::prepare_() {
     //0 on success, a negative AVERROR on failure.
     if (r < 0) {
         onError(THREAD_CHILD,r,"打开视频失败");
-        LOGD("error：打开视频文件 %d",r);
+        LOGD("error：打开视频文件 %d",av_err2str(r));
         return;
     }
     //查找媒体中的音视频流的信息
@@ -60,7 +60,7 @@ void CPlayer::prepare_() {
         //获取媒体流参数
         AVCodecContext * codeContext = avcodec_alloc_context3(avCodec);
         if(!codeContext){
-            onError(THREAD_CHILD,r,"分配上下文");
+            onError(THREAD_CHILD,r,av_err2str(r));
             LOGD("error：分配上下文");
             return;
         }
@@ -68,30 +68,31 @@ void CPlayer::prepare_() {
         r = avcodec_parameters_to_context(codeContext,parameters);
         // >= 0 on success, a negative AVERROR code on failure.
         if(r<0){
-            onError(THREAD_CHILD,r,"解码器参数拷贝");
+            onError(THREAD_CHILD,r,av_err2str(r));
             LOGD("error：解码器参数拷贝");
             return;
         }
         //打开编码器
         r = avcodec_open2(codeContext,avCodec,0);
         if(r){
-            onError(THREAD_CHILD,r,"打开解码器");
+            onError(THREAD_CHILD,r,av_err2str(r));
             LOGD("error：打开解码器");
             return;
         }
         //音频流
         if(parameters->codec_type == AVMediaType::AVMEDIA_TYPE_AUDIO){
-            audio_channel = new AudioChannel();
+            audio_channel = new AudioChannel(i,codeContext);
         }
         //视频流
         else if(parameters->codec_type==AVMediaType::AVMEDIA_TYPE_VIDEO){
-            video_channel = new VideoChannel();
+            video_channel = new VideoChannel(i,codeContext);
+            video_channel->setRendCallBack(renderCallBack);
         }
     }
     //判断解包是否正常
     if(!video_channel&&!audio_channel){
         LOGD("error：音视频channel异常");
-        onError(THREAD_CHILD,-1,"音视频channel异常");
+        onError(THREAD_CHILD,-1,av_err2str(r));
         return;
     }
     //回调prepared 成功
@@ -102,7 +103,6 @@ void CPlayer::prepare_() {
 
 //启动子线程开启format解析
 void CPlayer::prepare() {
-
     pthread_create(&pid_prepare, 0, task_prepare, this);
 }
 
@@ -116,13 +116,41 @@ void *task_start(void *args) {
 
 //播放视频
 void CPlayer::start() {
-    pid_prepare = 0;
-    pthread_create(&pid_prepare, 0, task_start, this);
+    isPlaying = 1;
+    //视频播放
+    if(video_channel){
+        video_channel->start();
+    }
+    //音视频播放
+    if(audio_channel){
+        audio_channel->start();
+    }
+    pthread_create(&pid_start, 0, task_start, this);
 }
 
 //开始播放视频
 void CPlayer::start_() {
-    video_channel->player_(formatContext);
+    //取出所以的压缩包
+    while (isPlaying){
+        //AVPacket
+        AVPacket * packet = av_packet_alloc();
+       int r =  av_read_frame(formatContext,packet);
+       if(!r){//ret==0
+           if(video_channel&&video_channel->stream_index==packet->stream_index){
+               video_channel->packets.insertToQueue(packet);
+           }else if(audio_channel&&audio_channel->stream_index==packet->stream_index){
+               audio_channel->packets.insertToQueue(packet);
+           }
+       }else if(r==AVERROR_EOF){//文件结尾
+           //todo 文件结尾
+       }else{
+           break;
+       }
+    }
+    isPlaying = 0;
+    //todo stop
+    video_channel->stop();
+    audio_channel->stop();
 }
 
 CPlayer::~CPlayer() {
@@ -138,6 +166,10 @@ void CPlayer::onError(int threadModel,int errorCode, char * errorMsg) {
     if(helper){
         helper->onError(threadModel,errorCode,errorMsg);
     }
+}
+
+void CPlayer::setRendCallBack(RenderCallBack renderCallBack) {
+    this->renderCallBack = renderCallBack;
 }
 
 

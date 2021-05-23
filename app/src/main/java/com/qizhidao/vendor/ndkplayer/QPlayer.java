@@ -1,7 +1,13 @@
 package com.qizhidao.vendor.ndkplayer;
 
 
-public class QPlayer {
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+
+import androidx.annotation.NonNull;
+
+public class QPlayer implements SurfaceHolder.Callback {
     static {
         System.loadLibrary("native-lib");
     }
@@ -10,6 +16,8 @@ public class QPlayer {
     private OnErrorListener errorListener;
 
     private String dataSource;
+
+    private SurfaceHolder mSurfaceHolder;
 
     public void setDataSource(String dataSource) {
         this.dataSource = dataSource;
@@ -32,6 +40,13 @@ public class QPlayer {
     }
 
 
+    public void setSurfaceView(SurfaceView surfaceView){
+        if(mSurfaceHolder!=null){
+            mSurfaceHolder.removeCallback(this);
+        }
+        mSurfaceHolder = surfaceView.getHolder();
+        mSurfaceHolder.addCallback(this);
+    }
 
     public void setOnPreparedListener(OnPreparedListener preparedListener) {
         this.preparedListener = preparedListener;
@@ -39,6 +54,21 @@ public class QPlayer {
 
     public void setErrorListener(OnErrorListener errorListener) {
         this.errorListener = errorListener;
+    }
+
+    @Override
+    public void surfaceCreated(@NonNull SurfaceHolder holder) {
+
+    }
+
+    @Override
+    public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+            setSurfaceNative(holder.getSurface());
+    }
+
+    @Override
+    public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+
     }
 
     interface OnPreparedListener {
@@ -53,6 +83,7 @@ public class QPlayer {
     private native void startNative();
     private native void stopNative();
     private native void releaseNative();
+    private native void setSurfaceNative(Surface surface);
 
     /**
      * 仅给jni调用

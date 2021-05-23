@@ -17,15 +17,20 @@ extern "C"{
 #include <libavformat/avformat.h>
 };
 
+typedef void(*RenderCallBack)(uint8_t *,int,int,int) ;
+
+
 class CPlayer {
 private:
     char *dataSource=0;
     AVFormatContext *formatContext=0;
     pthread_t pid_prepare = 0;
+    pthread_t pid_start = 0;
     AudioChannel *audio_channel=0;
     VideoChannel *video_channel=0;
     JNICallbackHelper *helper =0;
     void onError(int,int,char *);
+    RenderCallBack  renderCallBack;
 
 public:
     CPlayer(const char *dataSource, JNICallbackHelper *pHelper);
@@ -36,6 +41,8 @@ public:
     void start();
 
     void start_();
+    bool isPlaying;
+    void  setRendCallBack(RenderCallBack renderCallBack);
 };
 
 #endif //NDKPLAYER_CPLAYER_H

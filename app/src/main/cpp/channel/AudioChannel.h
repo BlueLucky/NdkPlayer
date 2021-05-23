@@ -1,12 +1,14 @@
 #ifndef NDKPLAYER_AUDIOCHANNEL_H
 #define NDKPLAYER_AUDIOCHANNEL_H
 
+#include "BaseChannel.h"
 
-class AudioChannel {
+class AudioChannel: public BaseChannel {
 
 public:
-    AudioChannel();
+    AudioChannel(int stream_index,AVCodecContext* avCodecContext);
     ~AudioChannel();
+    void stop();
+    void start();
 };
-
 #endif //NDKPLAYER_AUDIOCHANNEL_H

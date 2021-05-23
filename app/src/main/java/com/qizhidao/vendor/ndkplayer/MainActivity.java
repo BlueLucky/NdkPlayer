@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.SurfaceView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,7 +18,7 @@ import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     private QPlayer qPlayer;
-
+    private SurfaceView mSurfaceView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         TextView tv = findViewById(R.id.sample_text);
         tv.setText("");
 
-
+        mSurfaceView = findViewById(R.id.surfaceview);
 
 
 
@@ -52,10 +53,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initPlayer(){
-        String path = getFilesDir().getParent() + File.separator + "demo.mp4";
+        ///data/data/com.qizhidao.vendor.ndkplayer/files/[4K高清MV] A Pink-Hush.mp4
+        String path = getFilesDir() + File.separator + "[4K高清MV] A Pink-Hush.mp4";
         Log.d("Lucky_log","path:"+path);
         qPlayer = new QPlayer();
         qPlayer.setDataSource(path);
+        qPlayer.setSurfaceView(mSurfaceView);
+
         qPlayer.setErrorListener(new QPlayer.OnErrorListener() {
             @Override
             public void onError(final int errorCode, final String errorMessage) {
