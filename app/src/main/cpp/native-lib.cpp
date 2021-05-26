@@ -28,6 +28,7 @@ Java_com_qizhidao_vendor_ndkplayer_QPlayer_releaseNative(JNIEnv *env, jobject th
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_qizhidao_vendor_ndkplayer_QPlayer_stopNative(JNIEnv *env, jobject thiz) {
+
 }
 
 void renderFrame(uint8_t * dataSource,int width,int height,int lineSize){

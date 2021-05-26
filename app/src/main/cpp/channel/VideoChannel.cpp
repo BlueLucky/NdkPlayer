@@ -36,6 +36,7 @@ void VideoChannel::video_decode() {
         frames.insertToQueue(avFrame);
     }
     releaseAvPacket(&packet);
+    packets.clear();
 }
 
 //正式屏幕渲染
@@ -84,8 +85,9 @@ void VideoChannel::video_play() {
     }
     releaseAvFrame(&frame);
     isPlaying = 0;
-    av_free(&dst_data);
+    av_freep(&dst_data);
     sws_freeContext(swsContext);
+    frames.clear();
 }
 
 void VideoChannel::stop() {

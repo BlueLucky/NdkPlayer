@@ -53,8 +53,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initPlayer(){
+        ///data/data/com.qizhidao.vendor.ndkplayer/demo.mp4
         ///data/data/com.qizhidao.vendor.ndkplayer/files/[4K高清MV] A Pink-Hush.mp4
-        String path = getFilesDir() + File.separator + "[4K高清MV] A Pink-Hush.mp4";
+//        String path = getFilesDir().getParent() + File.separator + "[4K高清MV] A Pink-Hush.mp4";
+        String path = getFilesDir().getParent() + File.separator + "demo.mp4";
         Log.d("Lucky_log","path:"+path);
         qPlayer = new QPlayer();
         qPlayer.setDataSource(path);
