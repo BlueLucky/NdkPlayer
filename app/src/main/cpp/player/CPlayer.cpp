@@ -1,7 +1,4 @@
 #include "CPlayer.h"
-#include "../channel/AudioChannel.h"
-#include "../channel/VideoChannel.h"
-#include "../utils/util.h"
 
 CPlayer::CPlayer(const char *dataSource, JNICallbackHelper *pHelper) {
     this->dataSource = new char[strlen(dataSource) + 1];
@@ -86,7 +83,7 @@ void CPlayer::prepare_() {
         //视频流
         else if(parameters->codec_type==AVMediaType::AVMEDIA_TYPE_VIDEO){
             video_channel = new VideoChannel(i,codeContext);
-            video_channel->setRendCallBack(renderCallBack);
+            video_channel->setRenderCallback(renderCallBack);
         }
     }
     //判断解包是否正常

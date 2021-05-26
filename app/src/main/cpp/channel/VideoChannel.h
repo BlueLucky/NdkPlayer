@@ -1,28 +1,34 @@
-#ifndef NDKPLAYER_VIDEOCHANNEL_H
-#define NDKPLAYER_VIDEOCHANNEL_H
+#ifndef DERRYPLAYER_VIDEOCHANNEL_H
+#define DERRYPLAYER_VIDEOCHANNEL_H
+
 #include "BaseChannel.h"
 
-extern "C"{
-#include <libavcodec/avcodec.h>
-#include <libavutil/imgutils.h>
-#include <libswscale/swscale.h>
+extern "C" {
+    #include <libswscale/swscale.h>
+    #include <libavutil/avutil.h>
+    #include <libavutil/imgutils.h>
 };
-typedef void(*RenderCallBack)(uint8_t *,int,int,int) ;
 
-class VideoChannel: public BaseChannel {
+typedef void(*RenderCallback) (uint8_t *, int, int, int); // 函数指针声明定义
+
+class VideoChannel : public BaseChannel {
+
 private:
-    pthread_t  pid_video_decode;
-    pthread_t  pid_video_play;
-    RenderCallBack  renderCallBack;
+    pthread_t pid_video_decode;
+    pthread_t pid_video_play;
+    RenderCallback renderCallback;
 
 public:
-    VideoChannel(int stream_index,AVCodecContext *avCodecContext);
+    VideoChannel(int stream_index, AVCodecContext *codecContext);
     ~VideoChannel();
-    void stop();
+
     void start();
+    void stop();
+
     void video_decode();
     void video_play();
-    void  setRendCallBack(RenderCallBack renderCallBack);
+
+    void setRenderCallback(RenderCallback renderCallback);
 };
 
-#endif //NDKPLAYER_VIDEOCHANNEL_H
+#endif //DERRYPLAYER_VIDEOCHANNEL_H
