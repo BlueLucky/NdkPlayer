@@ -15,6 +15,7 @@
 
 extern "C"{
 #include <libavformat/avformat.h>
+#include <libavutil/time.h>
 };
 
 typedef void(*RenderCallBack)(uint8_t *,int,int,int) ;

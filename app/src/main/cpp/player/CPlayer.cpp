@@ -129,6 +129,17 @@ void CPlayer::start() {
 void CPlayer::start_() {
     //取出所以的压缩包
     while (isPlaying){
+        //生产者 生产太快
+        if(video_channel&&video_channel->packets.size()>120){
+            av_usleep(10*1000);
+            continue;
+        }
+
+        if(audio_channel&&audio_channel->packets.size()>120){
+            av_usleep(10*1000);
+            continue;
+        }
+
         //AVPacket
         AVPacket * packet = av_packet_alloc();
        int r =  av_read_frame(formatContext,packet);
@@ -139,6 +150,9 @@ void CPlayer::start_() {
                audio_channel->packets.insertToQueue(packet);
            }
        }else if(r==AVERROR_EOF){//文件结尾
+           if(video_channel->packets.empty()&&audio_channel->packets.empty()){
+               break;
+           }
            //todo 文件结尾
        }else{
            break;

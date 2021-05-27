@@ -46,6 +46,11 @@ void VideoChannel::start() {
 void VideoChannel::video_decode() {
     AVPacket *pkt = 0;
     while (isPlaying) {
+        //生产者太快
+        if(frames.size()>120){
+            av_usleep(10*1000);
+        }
+
         int ret = packets.getQueueAndDel(pkt); // 阻塞式函数
         if (!isPlaying) {
             break; // 如果关闭了播放，跳出循环，releaseAVPacket(&pkt);
@@ -59,7 +64,7 @@ void VideoChannel::video_decode() {
         ret = avcodec_send_packet(codecContext, pkt);
 
         // FFmpeg源码缓存一份pkt，大胆释放即可
-        releaseAVPacket(&pkt);
+        //releaseAVPacket(&pkt);
 
         if (ret) {
             break; // avcodec_send_packet 出现了错误，结束循环
@@ -72,11 +77,20 @@ void VideoChannel::video_decode() {
             // B帧  B帧参考前面成功  B帧参考后面失败   可能是P帧没有出来，再拿一次就行了
             continue;
         } else if (ret != 0) {
+            if(frame){
+                av_frame_unref(frame);
+                releaseAVFrame(&frame);
+            }
             break; // 错误了
         }
         // 重要拿到了 原始包-- YUV数据
         frames.insertToQueue(frame);
+        //释放
+        av_packet_unref(pkt); //驱动内部减一 释放内部成员空间
+        releaseAVPacket(&pkt); //释放pkt的本身堆区空间
     } // end while
+
+    av_packet_unref(pkt);
     releaseAVPacket(&pkt);
 }
 
@@ -136,9 +150,12 @@ void VideoChannel::video_play() { // 第二线线程：视频：从队列取出�
 
         // 基础：数组被传递会退化成指针，默认就是去1元素
         renderCallback(dst_data[0], codecContext->width, codecContext->height, dst_linesize[0]);
+
+        av_frame_unref(frame);
         releaseAVFrame(&frame); // 释放原始包，因为已经被渲染完了，没用了
     }
     // 简单的释放
+    av_frame_unref(frame);
     releaseAVFrame(&frame); // 出现错误，所退出的循环，都要释放frame
     isPlaying =0;
     av_free(&dst_data[0]);
