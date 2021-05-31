@@ -88,9 +88,9 @@ public class ExampleUnitTest {
 
         for (int i = 0; i < traverseSize; i++) {
             for (int j = 0; j < traverseColSize; j++) {
-                int temp =  matrix[i][j];
-                matrix[i][j] =  matrix[changeCol + i - j][changeCol];
-                matrix[changeCol + i - j][changeCol] = temp ;
+                int temp = matrix[i][j];
+                matrix[i][j] = matrix[changeCol + i - j][changeCol];
+                matrix[changeCol + i - j][changeCol] = temp;
             }
             changeCol--;
             traverseColSize--;
@@ -285,6 +285,16 @@ public class ExampleUnitTest {
         }
     }
 
+    public void reverse(char[] nums, int start, int end) {
+        while (start < end) {
+            char temp = nums[start];
+            nums[start] = nums[end];
+            nums[end] = temp;
+            start += 1;
+            end -= 1;
+        }
+    }
+
     public int maxProfit(int[] prices) {
         int maxPrice = 0;
         int length = prices.length;
@@ -316,27 +326,213 @@ public class ExampleUnitTest {
     }
 
     @Test
-    public void testString(){
-        //char[] chars ={'h','e','l','l','o'};
-        //reverseString(chars);
-        //printStr(chars);
-//        System.out.println("reverse int:"+reverse(12345));
+    public void testString() {
+        String[] strs = {"flower", "flow", "flight"};
+        System.out.println("longestCommonPrefix:" + longestCommonPrefix(strs));
+    }
 
-        System.out.println("index:"+firstUniqChar("loveleetcode"));
+    public String longestCommonPrefix(String[] strs) {
+        if (strs.length <= 0) {
+            return "";
+        }
+        if (strs.length == 1) {
+            return strs[0];
+        }
+        int reLength = strs[0].length();
+        String minStr = strs[0];
+        for (int i = 1; i < strs.length; i++) {
+            if (strs[i].length() < reLength) {
+                reLength = strs[i].length();
+                minStr = strs[i];
+            }
+        }
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < reLength; i++) {
+            char compareChar = minStr.charAt(i);
+            for (int j = 0; j < strs.length; j++) {
+                if (compareChar != strs[j].charAt(i)) {
+                    return result.toString();
+                }
+            }
+            result.append(compareChar);
+        }
+
+        return result.toString();
+    }
+
+    public String countAndSay(int n) {
+        String result = "1";
+        for (int i = 1; i < n; i++) {
+            int dffPosition = 0;
+            StringBuilder tempResult = new StringBuilder();
+            for (int j = 0; j < result.length(); j++) {
+                int nextPosition = j + 1;
+                if (nextPosition < result.length()) {
+                    if (result.charAt(j) != result.charAt(nextPosition)) {
+                        tempResult.append(j - dffPosition + 1).append(result.charAt(j));
+                        dffPosition = nextPosition;
+                    }
+                } else {
+                    tempResult.append(j - dffPosition + 1).append(result.charAt(j));
+                }
+            }
+            result = tempResult.toString();
+        }
+        return result;
+    }
+
+    public int strStr(String haystack, String needle) {
+        final int sourceLength = haystack.length();
+        final int targetLength = needle.length();
+        if (targetLength == 0) {
+            return 0;
+        }
+        char first = needle.charAt(0);
+        int max = sourceLength - targetLength;
+        for (int i = 0; i <= max; i++) {
+            //寻找第一个target元素
+            if (haystack.charAt(i) != first) {
+                while (++i <= max && haystack.charAt(i) != first) ;
+            }
+            //继续选择其他字符
+            if (i <= max) {
+                int j = i + 1;
+                int end = j + targetLength - 1;
+                for (int k = 1; j < end && haystack.charAt(j) == needle.charAt(k); j++, k++) ;
+                if (j == end) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public int myAtoi(String s) {
+        s = s.trim();
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (int i = 0; i < s.length(); i++) {
+            char currentChar = s.charAt(i);
+            if (currentChar == '-' || currentChar == '+') {
+                if (i == 0) {
+                    stringBuilder.append(currentChar);
+                } else {
+                    break;
+                }
+            } else if (Character.isDigit(currentChar)) {
+                stringBuilder.append(currentChar);
+            } else {
+                break;
+            }
+        }
+        String result = stringBuilder.toString();
+        System.out.println("result:" + result);
+        if (result.isEmpty()) {
+            return 0;
+        } else {
+            return parseInt(result, 10);
+        }
+    }
+
+
+    private int parseInt(String s, int radix) {
+        int result = 0;
+        boolean negative = false;
+        int i = 0, len = s.length();
+        int limit = -Integer.MAX_VALUE;
+        int multmin;
+        int digit;
+        if (len > 0) {
+            char firstChar = s.charAt(0);
+            if (firstChar < '0') { // Possible leading "+" or "-"
+                if (firstChar == '-') {
+                    negative = true;
+                    limit = Integer.MIN_VALUE;
+                } else if (firstChar != '+') {
+                    return 0;
+                }
+                if (len == 1) // Cannot have lone "+" or "-"
+                    return 0;
+                i++;
+            }
+            multmin = limit / radix;
+            while (i < len) {
+                // Accumulating negatively avoids surprises near MAX_VALUE
+                digit = Character.digit(s.charAt(i++), radix);
+                System.out.println("digit:" + digit);
+                if (digit < 0) {
+                    return 0;
+                }
+                if (result < multmin) {
+                    return negative ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+                }
+                result *= radix;
+                if (result < limit + digit) {
+                    return negative ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+                }
+                result -= digit;
+            }
+        } else {
+            return 0;
+        }
+        return negative ? result : -result;
+    }
+
+    public boolean isPalindrome(String s) {
+        int left = 0;
+        int right = s.length() - 1;
+        s = s.toLowerCase();
+        while (right - left >= 1) {
+            if (!Character.isLetterOrDigit(s.charAt(left))) {
+                left++;
+                continue;
+            }
+            if (!Character.isLetterOrDigit(s.charAt(right))) {
+                right--;
+                continue;
+            }
+            if (s.charAt(left) != s.charAt(right)) {
+                return false;
+            }
+            left++;
+            right--;
+        }
+        return true;
+    }
+
+    public boolean isAnagram(String s, String t) {
+        if (s.length() != t.length()) {
+            return false;
+        }
+        char[] firstChars = s.toCharArray();
+        char[] secondChars = t.toCharArray();
+        int chars[] = new int[26];
+        for (char c : firstChars) {
+            chars[c - 'a']++;
+        }
+        for (char c : secondChars) {
+            chars[c - 'a']--;
+        }
+        for (int c : chars) {
+            if (c != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public int firstUniqChar(String s) {
-        char[] chars =  s.toCharArray();
+        char[] chars = s.toCharArray();
         int intChars[] = new int[26];
         int indexs[] = new int[26];
-        for(int i=0;i<chars.length;i++){
-            int index = chars[i]-'a';
+        for (int i = 0; i < chars.length; i++) {
+            int index = chars[i] - 'a';
             intChars[index]++;
             indexs[index] = i;
         }
-        for(int i=0;i<chars.length;i++){
-            int index = chars[i]-'a';
-            if(intChars[index]==1){
+        for (int i = 0; i < chars.length; i++) {
+            int index = chars[i] - 'a';
+            if (intChars[index] == 1) {
                 return indexs[index];
             }
         }
@@ -344,12 +540,12 @@ public class ExampleUnitTest {
     }
 
     public int reverse(int x) {
-        long result=0;
-        while (x!=0){
-            result = result*10+x%10;
-            x = x/10;
+        long result = 0;
+        while (x != 0) {
+            result = result * 10 + x % 10;
+            x = x / 10;
         }
-        if(result<Integer.MIN_VALUE||result>Integer.MAX_VALUE){
+        if (result < Integer.MIN_VALUE || result > Integer.MAX_VALUE) {
             return 0;
         }
         return (int) result;
@@ -357,23 +553,95 @@ public class ExampleUnitTest {
 
     public void reverseString(char[] s) {
         int condition = s.length;
-        for(int i=0;i<condition;i++){
-            if(i<=condition){
+        for (int i = 0; i < condition; i++) {
+            if (i <= condition) {
                 char temp = s[i];
-                s[i] =  s[condition-1];
-                s[condition-1] = temp;
+                s[i] = s[condition - 1];
+                s[condition - 1] = temp;
 
                 condition--;
             }
         }
     }
 
-    private void printStr(char[] chars){
+    private void printStr(char[] chars) {
         System.out.println();
         System.out.print("[");
-        for(char c:chars){
-            System.out.print(c+" ");
+        for (char c : chars) {
+            System.out.print(c + " ");
         }
         System.out.print("]");
+    }
+
+    @Test
+    public void testNote() {
+        ListNode head = new ListNode(1);
+        ListNode firstNode = new ListNode(2);
+        head.next = firstNode;
+
+        ListNode secondeNode = new ListNode(3);
+        firstNode.next = secondeNode;
+
+        ListNode thirdNode = new ListNode(4);
+        secondeNode.next = thirdNode;
+
+
+        ListNode fourNode = new ListNode(5);
+        thirdNode.next = fourNode;
+
+        fourNode.next = null;
+
+        ListNode resultNode = reverseList(head);
+
+        System.out.println();
+        System.out.print("[");
+        System.out.print(resultNode.toString());
+        System.out.print("]");
+         System.out.println();
+    }
+
+    public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+        ListNode curNote;
+        
+        return null;
+    }
+
+
+    public ListNode reverseList(ListNode head) {
+      if(head==null||head.next==null){
+          return head;
+      }
+      ListNode temp = head.next;
+      ListNode newHead = reverseList(head.next);
+      temp.next = head;
+      head.next = null;
+      return newHead;
+    }
+
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        int count =1;
+        ListNode rvNode = head;
+        while (rvNode.next!=null){
+            count++;
+            rvNode = rvNode.next;
+        }
+        System.out.println("count："+count);
+        ListNode tempNode = head;
+        int removeIndex = count-n;
+        if(removeIndex==0){
+            return head.next;
+        }
+        System.out.println("removeIndex："+removeIndex);
+        count = 1;
+        while (tempNode.next!=null){
+             if(removeIndex==count){
+                 tempNode.next = tempNode.next.next;
+                 break;
+             }else{
+                 tempNode = tempNode.next;
+                 count++;
+             }
+        }
+        return head;
     }
 }
